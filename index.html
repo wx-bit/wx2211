@@ -1,0 +1,215 @@
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+    <meta charset="UTF-8">  
+    <title>海陆风热力环流交互教学演示</title>  
+    <style>  
+        :root {  
+            --land-warm: #ffab73; --land-cold: #a58d7f;  
+            --sea-warm: #4facfe; --sea-cold: #2a5298;  
+            --sky-day: linear-gradient(to bottom, #87ceeb, #e0f7fa);  
+            --sky-night: linear-gradient(to bottom, #0f2027, #203a43);  
+        }  
+  
+        body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f5f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }  
+          
+        .main-card { background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); display: flex; width: 1000px; height: 600px; overflow: hidden; position: relative; }  
+  
+        /* 左侧动画画布 */  
+        .canvas-area { flex: 7; position: relative; overflow: hidden; transition: background 1s; }  
+          
+        /* 陆地与海洋 */  
+        .ground { position: absolute; bottom: 0; width: 100%; height: 140px; display: flex; z-index: 10; }  
+        .land-mass { flex: 1; background: var(--land-warm); transition: 1s; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: #5d4037; }  
+        .sea-mass { flex: 1; background: var(--sea-warm); transition: 1s; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; color: #fff; }  
+  
+        /* 右侧面板 */  
+        .sidebar { flex: 3; background: #f8f9fa; padding: 30px; border-left: 1px solid #eee; display: flex; flex-direction: column; }  
+        h2 { margin-top: 0; color: #2c3e50; font-size: 22px; }  
+        .explanation { flex: 1; line-height: 1.8; color: #444; font-size: 16px; background: white; padding: 15px; border-radius: 10px; border-left: 4px solid #4facfe; }  
+  
+        /* 控制按钮 */  
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }  
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; background: #ddd; }  
+        button.active { background: #4facfe; color: white; transform: scale(1.05); }  
+  
+        /* 气流粒子动画 */  
+        .particle { position: absolute; width: 8px; height: 8px; background: rgba(255,255,255,0.6); border-radius: 50%; pointer-events: none; }  
+  
+        /* 气压标注 (H/L) */  
+        .pressure-label { position: absolute; width: 40px; height: 40px; border-radius: 50%; border: 2px solid; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; transition: 0.5s; z-index: 15; }  
+        .h-tag { border-color: #ff4757; color: #ff4757; background: rgba(255,255,255,0.8); }  
+        .l-tag { border-color: #2f3542; color: #2f3542; background: rgba(255,255,255,0.8); }  
+  
+        /* 动态温标 */  
+        .temp-info { font-size: 14px; margin-top: 5px; }  
+  
+        /* 气流路径 */  
+        .arrow-path { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }  
+    </style>  
+</head>  
+<body>  
+  
+<div class="main-card">  
+    <!-- 动画区 -->  
+    <div class="canvas-area" id="sky">  
+        <!-- 太阳/月亮 -->  
+        <div id="celestial" style="position:absolute; top:40px; left:40px; font-size:60px; transition:1s;">☀️</div>  
+          
+        <!-- 气压标签 -->  
+        <div id="press-land" class="pressure-label l-tag" style="bottom: 160px; left: 200px;">L</div>  
+        <div id="press-sea" class="pressure-label h-tag" style="bottom: 160px; right: 200px;">H</div>  
+  
+        <!-- 粒子容器 -->  
+        <div id="particle-container"></div>  
+  
+        <div class="ground">  
+            <div class="land-mass" id="land">  
+                <span>陆地</span>  
+                <div class="temp-info" id="land-status">升温快 (热)</div>  
+            </div>  
+            <div class="sea-mass" id="sea">  
+                <span>海洋</span>  
+                <div class="temp-info" id="sea-status">升温慢 (冷)</div>  
+            </div>  
+        </div>  
+    </div>  
+  
+    <!-- 侧边栏说明 -->  
+    <div class="sidebar">  
+        <h2>海陆风成因演示</h2>  
+        <div class="explanation" id="exp-text">  
+            <b>白天场景（海风）：</b><br>  
+            1. 陆地比热容小，升温快，近地面气温高。<br>  
+            2. 陆地空气受热膨胀<b>上升</b>，近地面形成<b>低压(L)</b>。<br>  
+            3. 海洋升温慢，气温低，空气下沉，近地面形成<b>高压(H)</b>。<br>  
+            4. 风从高压吹向低压，形成<b>海风</b>。  
+        </div>  
+          
+        <div class="btn-group">  
+            <button id="btn-day" class="active" onclick="updateScene('day')">白天 (海风)</button>  
+            <button id="btn-night" onclick="updateScene('night')">夜晚 (陆风)</button>  
+        </div>  
+          
+        <p style="font-size: 12px; color: #888; margin-top: 20px;">  
+            提示：观察圆点（空气粒子）的流动方向，体现了热力环流的完整过程。  
+        </p>  
+    </div>  
+</div>  
+  
+<script>  
+    const particles = [];  
+    const container = document.getElementById('particle-container');  
+    const particleCount = 40;  
+  
+    // 创建空气粒子  
+    function createParticles() {  
+        for (let i = 0; i < particleCount; i++) {  
+            const p = document.createElement('div');  
+            p.className = 'particle';  
+            container.appendChild(p);  
+            particles.push({  
+                el: p,  
+                angle: (i / particleCount) * Math.PI * 2, // 分散在环流路径上  
+                progress: Math.random()  
+            });  
+        }  
+    }  
+  
+    let currentMode = 'day';  
+    let animId;  
+  
+    function animate() {  
+        // 定义环流中心和半径  
+        const centerX = 350; // 动画区中心  
+        const centerY = 280;  
+        const radiusX = 220; // 椭圆横向半径  
+        const radiusY = 120; // 椭圆纵向半径  
+  
+        particles.forEach((p, i) => {  
+            // 根据白天/夜晚决定顺时针或逆时针  
+            if (currentMode === 'day') {  
+                p.progress -= 0.005; // 逆时针：海面->陆地(低)->高空->海面(高)  
+            } else {  
+                p.progress += 0.005; // 顺时针：陆地->海面(低)->高空->陆地(高)  
+            }  
+  
+            const x = centerX + Math.cos(p.progress * Math.PI * 2) * radiusX;  
+            const y = centerY + Math.sin(p.progress * Math.PI * 2) * radiusY;  
+  
+            p.el.style.left = `${x}px`;  
+            p.el.style.top = `${y}px`;  
+              
+            // 粒子在上升段变大变红，下降段变小变蓝 (增加视觉效果)  
+            const isRising = currentMode === 'day' ? (x < centerX) : (x > centerX);  
+            p.el.style.background = isRising ? '#ff7f50' : '#74b9ff';  
+            p.el.style.opacity = 0.6;  
+        });  
+  
+        animId = requestAnimationFrame(animate);  
+    }  
+  
+    function updateScene(mode) {  
+        currentMode = mode;  
+        const sky = document.getElementById('sky');  
+        const celestial = document.getElementById('celestial');  
+        const land = document.getElementById('land');  
+        const sea = document.getElementById('sea');  
+        const landStatus = document.getElementById('land-status');  
+        const seaStatus = document.getElementById('sea-status');  
+        const pressLand = document.getElementById('press-land');  
+        const pressSea = document.getElementById('press-sea');  
+        const expText = document.getElementById('exp-text');  
+          
+        // 更新按钮状态  
+        document.getElementById('btn-day').classList.toggle('active', mode === 'day');  
+        document.getElementById('btn-night').classList.toggle('active', mode === 'night');  
+  
+        if (mode === 'day') {  
+            sky.style.background = 'var(--sky-day)';  
+            celestial.innerHTML = '☀️';  
+            celestial.style.left = '40px';  
+            land.style.background = 'var(--land-warm)';  
+            sea.style.background = 'var(--sea-warm)';  
+            landStatus.innerText = '升温快 (热)';  
+            seaStatus.innerText = '升温慢 (冷)';  
+              
+            // 气压：陆低海高  
+            pressLand.innerText = 'L'; pressLand.className = 'pressure-label l-tag';  
+            pressSea.innerText = 'H'; pressSea.className = 'pressure-label h-tag';  
+              
+            expText.innerHTML = `<b>白天场景（海风）：</b><br>  
+                1. 陆地比热容小，<b>升温快</b>，气温高。<br>  
+                2. 陆地上空空气受热膨胀<b>上升</b>，近地面形成<b>低压(L)</b>。<br>  
+                3. 海洋升温慢，气温低，空气下沉，近地面形成<b>高压(H)</b>。<br>  
+                4. 水平气流从海洋流向陆地，形成<b>海风</b>。`;  
+        } else {  
+            sky.style.background = 'var(--sky-night)';  
+            celestial.innerHTML = '🌙';  
+            celestial.style.left = '600px';  
+            land.style.background = 'var(--land-cold)';  
+            sea.style.background = 'var(--sea-cold)';  
+            landStatus.innerText = '降温快 (冷)';  
+            seaStatus.innerText = '降温慢 (热)';  
+  
+            // 气压：陆高海低  
+            pressLand.innerText = 'H'; pressLand.className = 'pressure-label h-tag';  
+            pressSea.innerText = 'L'; pressSea.className = 'pressure-label l-tag';  
+  
+            expText.innerHTML = `<b>夜晚场景（陆风）：</b><br>  
+                1. 陆地比热容小，<b>降温快</b>，气温低。<br>  
+                2. 陆地空气冷却收缩<b>下沉</b>，近地面形成<b>高压(H)</b>。<br>  
+                3. 海洋降温慢，气温较高，空气上升，近地面形成<b>低压(L)</b>。<br>  
+                4. 水平气流从陆地流向海洋，形成<b>陆风</b>。`;  
+        }  
+    }  
+  
+    createParticles();  
+    updateScene('day');  
+    animate();  
+</script>  
+  
+</body>  
+</html>  
+
+

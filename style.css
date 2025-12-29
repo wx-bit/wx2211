@@ -1,0 +1,120 @@
+body {  
+    margin: 0;  
+    background-color: #222;  
+    display: flex;  
+    justify-content: center;  
+    align-items: center;  
+    height: 100vh;  
+    font-family: 'zpix', 'Microsoft YaHei', sans-serif;  
+}  
+  
+.game-wrapper {  
+    width: 100%;  
+    max-width: 500px;  
+    background: #fff;  
+    border: 8px solid #333;  
+    border-radius: 20px;  
+    overflow: hidden;  
+}  
+  
+/* 战斗场景背景 */  
+.battle-scene {  
+    background: linear-gradient(to bottom, #87CEEB 60%, #90EE90 60%);  
+    height: 300px;  
+    position: relative;  
+    padding: 20px;  
+    display: flex;  
+    flex-direction: column;  
+    justify-content: space-between;  
+}  
+  
+.character {  
+    display: flex;  
+    align-items: center;  
+    position: relative;  
+}  
+  
+.enemy { justify-content: flex-end; }  
+.player { justify-content: flex-start; }  
+  
+.character img {  
+    width: 150px;  
+    image-rendering: pixelated; /* 保持像素风清晰 */  
+}  
+  
+/* 血条卡片样式 */  
+.status-card {  
+    background: rgba(255, 255, 255, 0.8);  
+    border: 3px solid #444;  
+    border-radius: 10px 0 10px 0;  
+    padding: 8px;  
+    width: 180px;  
+}  
+  
+.name { font-weight: bold; font-size: 14px; margin-bottom: 5px; }  
+  
+.hp-bar-container {  
+    height: 12px;  
+    background: #555;  
+    border-radius: 6px;  
+    overflow: hidden;  
+    border: 2px solid #333;  
+}  
+  
+.hp-fill {  
+    height: 100%;  
+    width: 100%;  
+    background: #4caf50;  
+    transition: width 0.4s ease;  
+}  
+  
+.hp-text {  
+    font-size: 12px;  
+    text-align: right;  
+    margin-top: 2px;  
+}  
+  
+/* 消息框 */  
+.message-box {  
+    height: 60px;  
+    background: #333;  
+    color: white;  
+    padding: 15px;  
+    font-size: 18px;  
+    border-top: 4px solid #f8d030;  
+}  
+  
+/* 控制区 */  
+.control-box {  
+    background: #f0f0f0;  
+    padding: 10px;  
+}  
+  
+.action-grid {  
+    display: grid;  
+    grid-template-columns: 1fr 1fr;  
+    gap: 10px;  
+}  
+  
+button {  
+    padding: 15px;  
+    font-size: 16px;  
+    background: #fff;  
+    border: 3px solid #333;  
+    border-radius: 8px;  
+    cursor: pointer;  
+}  
+  
+button:hover { background: #f8d030; }  
+button:active { transform: scale(0.95); }  
+  
+/* 动画效果 */  
+@keyframes shake {  
+    0% { transform: translate(0,0); }  
+    25% { transform: translate(10px, 0); }  
+    50% { transform: translate(-10px, 0); }  
+    75% { transform: translate(10px, 0); }  
+    100% { transform: translate(0,0); }  
+}  
+  
+.animate-shake { animation: shake 0.3s ease-in-out; }  
